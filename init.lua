@@ -403,6 +403,13 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+      local function grep_string_with_symlinks()
+        return {
+          vim.fn.getcwd(),
+          '/home/jakeb/www.galil.com/var/www/html/jango/web/include/part-number-generator/config-dev/',
+        }
+      end
+
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -412,7 +419,14 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          find_files = {
+            find_command = { 'rg', '--files', '-L' },
+          },
+          grep_string = {
+            search_dirs = grep_string_with_symlinks(),
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
