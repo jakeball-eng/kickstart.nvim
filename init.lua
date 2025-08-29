@@ -247,7 +247,7 @@ rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+  --'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -403,28 +403,52 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
-      local function grep_string_with_symlinks()
-        return {
-          vim.fn.getcwd(),
-          '/home/jakeb/www.galil.com/var/www/html/jango/web/include/part-number-generator/config-dev/',
-        }
+      local function grep_with_symlinks()
+        local dirs = { vim.fn.getcwd() }
+        local links_dir = vim.fn.getcwd() .. '/links'
+
+        if vim.fn.isdirectory(links_dir) == 1 then
+          local handle = vim.loop.fs_scandir(links_dir)
+          if handle then
+            while true do
+              local name, type = vim.loop.fs_scandir_next(handle)
+              if not name then
+                break
+              end
+
+              if type == 'link' then
+                local file_path = links_dir .. '/' .. name
+                table.insert(dirs, file_path)
+              end
+            end
+          end
+        end
+        return dirs
       end
 
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            i = {
+              ['<C-d>'] = require('telescope.actions').delete_buffer,
+            },
+            n = {
+              ['<C-d>'] = require('telescope.actions').delete_buffer,
+            },
+          },
+        },
         pickers = {
           find_files = {
             find_command = { 'rg', '--files', '-L' },
           },
           grep_string = {
-            search_dirs = grep_string_with_symlinks(),
+            search_dirs = grep_with_symlinks(),
+          },
+          live_grep = {
+            search_dirs = grep_with_symlinks(),
           },
         },
         extensions = {
@@ -1028,3 +1052,9 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- jakeb additions
+vim.opt.tabstop = 2
+vim.opt.expandtab = false
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
